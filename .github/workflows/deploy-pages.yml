@@ -16,42 +16,68 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
-      pages_ready: ${{ steps.pages.outcome == 'success' }}
+      pages_ready: ${{ steps.pages.outputs.enabled }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
+
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+
       - name: Type check
         run: npm run typecheck
+
       - name: Lint
         run: npm run lint
+
       - name: Build static site
         run: npm run build
-      - name: Configure Pages
+
+      - name: Upload static build artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: pcbod-static-site
+          path: ./out
+          if-no-files-found: error
+
+      - name: Check whether GitHub Pages is enabled
         id: pages
-        continue-on-error: true
-        uses: actions/configure-pages@v5
-      - name: Upload Pages artifact
-        if: steps.pages.outcome == 'success'
-        uses: actions/upload-pages-artifact@v3
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          status="$(curl --silent --show-error             --output /tmp/pages-status.json             --write-out "%{http_code}"             --header "Accept: application/vnd.github+json"             --header "Authorization: Bearer ${GH_TOKEN}"             --header "X-GitHub-Api-Version: 2022-11-28"             "https://api.github.com/repos/${GITHUB_REPOSITORY}/pages")"
+
+          if [ "$status" = "200" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "GitHub Pages is enabled; deployment will run."
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "GitHub Pages is not enabled for this repository (HTTP $status)."
+            echo "Build artifact was still produced successfully."
+          fi
+
+      - name: Upload GitHub Pages artifact
+        if: steps.pages.outputs.enabled == 'true'
+        uses: actions/upload-pages-artifact@v5
         with:
           path: ./out
 
   deploy:
     if: needs.build.outputs.pages_ready == 'true'
+    runs-on: ubuntu-24.04
+    needs: build
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

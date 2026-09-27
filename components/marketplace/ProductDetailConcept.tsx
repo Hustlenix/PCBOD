@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { conceptProducts } from "@/data/concept-products";
 import { ConceptBadge } from "@/components/ui/ConceptBadge";
 import { PcbBoard } from "@/components/pcb/PcbBoard";
@@ -8,7 +8,6 @@ import { PcbBoard } from "@/components/pcb/PcbBoard";
 export function ProductDetailConcept() {
   const product = conceptProducts[0];
   const [variantIndex, setVariantIndex] = useState(1);
-  const variant = useMemo(() => product.variants[variantIndex], [product, variantIndex]);
   return (
     <div className="grid border border-line bg-cream lg:grid-cols-[1.1fr_.9fr]">
       <div className="border-b border-line p-4 lg:border-b-0 lg:border-r sm:p-6"><PcbBoard product={product} /></div>

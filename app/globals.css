@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --paper: #f3f0e8;
+  --ink: #111714;
+  --line: #c9cdc7;
+  --pcb: #1f6b50;
+  --copper: #a86f39;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--paper); color: var(--ink); }
+::selection { background: #1f6b50; color: #fff; }
+a { text-underline-offset: 3px; }
+summary::-webkit-details-marker { display: none; }
+
+.technical-grid {
+  background-image:
+    linear-gradient(rgba(17,23,20,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(17,23,20,.045) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.pcb-board::before,
+.pcb-board::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+.pcb-board::before { inset: 0; background-image: radial-gradient(circle at center, rgba(255,255,255,.1) 0 1px, transparent 1.5px); background-size: 14px 14px; opacity: .3; }
+.pcb-board::after { inset: 12px; border: 1px dashed rgba(255,255,255,.08); }
+.trace-divider { position: relative; }
+.trace-divider::before { content: ""; position: absolute; top: 0; left: 50%; width: min(720px,80vw); height: 1px; transform: translateX(-50%); background: linear-gradient(90deg, transparent, #a86f39, transparent); }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
